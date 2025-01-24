@@ -1,14 +1,16 @@
 const Hapi = require('@hapi/hapi');
 
-// const notes = require('./api/notes');
-// const NotesService = require('./services/postgres/NotesService');
-// const NotesValidator = require('./validator/notes');
-// const ClientError = require('./exceptions/ClientError');
+const albums = require('./api/albums');
+const AlbumsService = require('./services/AlbumsService')
+const AlbumsValidator = require('./validators/AlbumsValidator');
+
+
+const ClientError = require('./exceptions/ClientError');
 
 require('dotenv').config();
 
 const init = async () => {
-    const notesService = new NotesService();
+    const albumsService = new AlbumsService();
 
     const server = Hapi.server({
         port: process.env.PORT,
@@ -21,18 +23,16 @@ const init = async () => {
     });
 
     await server.register({
-        plugin: notes,
+        plugin: albums,
         options: {
-            service: notesService,
-            validator: NotesValidator,
+            service: albumsService,
+            validator: AlbumsValidator,
         },
     });
 
     server.ext('onPreResponse', (request, h) => {
-        // mendapatkan konteks response dari request
         const { response } = request;
 
-        // penanganan client error secara internal.
         if (response instanceof ClientError) {
             const newResponse = h.response({
                 status: 'fail',
