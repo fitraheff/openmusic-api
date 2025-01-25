@@ -1,4 +1,4 @@
-const SongsHandler =  require("./handler")
+const SongsHandler = require("./handler")
 const router = require("./routes")
 
 module.exports = {

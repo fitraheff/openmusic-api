@@ -11,44 +11,44 @@ class SongsHandler {
     async postSongHandler(request, h) {
         this._validator.validateSongPayload(request.payload);
         const { title, year, genre, performer, duration, albumId } = request.payload;
-        const song_id = await this._service.addSong({ title, year, genre, performer, duration, albumId: albumId || null });
+        const songId = await this._service.addSong({
+            title, year, genre, performer, duration, albumId: albumId || null
+        });
         const response = h.response({
             status: 'success',
             data: {
-                songId: song_id
+                songId
             },
         });
         response.code(201);
         return response;
     }
 
-    async getSongsHandler(request, h) {
+    async getSongsHandler(request) {
         const { title = '', performer = '' } = request.query;
-    
-        // Pastikan Anda memanggil getSongs dengan parameter terpisah
+
         const songs = await this._service.getSongs(title, performer);
-    
+
         return {
             status: 'success',
             data: {
-                songs: songs,
+                songs,
             },
         };
     }
-    
 
-    async getSongByIdHandler(request, h) {
+    async getSongByIdHandler(request) {
         const { id } = request.params;
         const song = await this._service.getSongById(id);
         return {
             status: 'success',
             data: {
-                song: song
+                song
             },
         };
     }
 
-    async putSongByIdHandler(request, h) {
+    async putSongByIdHandler(request) {
         this._validator.validateSongPayload(request.payload);
         const { id } = request.params;
         await this._service.updateSongById(id, request.payload);
@@ -58,7 +58,7 @@ class SongsHandler {
         };
     }
 
-    async deleteSongByIdHandler(request, h) {
+    async deleteSongByIdHandler(request) {
         const { id } = request.params;
         await this._service.deleteSongById(id);
         return {

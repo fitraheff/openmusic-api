@@ -7,7 +7,6 @@ const songs = require('./api/songs');
 const SongsService = require('./services/SongsService')
 const SongsValidator = require('./validator/songs');
 
-
 const ClientError = require('./exceptions/ClientError');
 
 require('dotenv').config();

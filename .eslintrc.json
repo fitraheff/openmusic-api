@@ -10,6 +10,15 @@
         "ecmaVersion": "latest"
     },
     "rules": {
-        "no-console": "off"
+        "no-console": "off",
+        "no-underscore-dangle": "off",
+        "linebreak-style": "off",
+        "comma-dangle":"off",
+        "no-trailing-spaces":"off",
+        "object-curly-newline":"off",
+        "quotes": "off",
+        "indent": "off",
+        "semi":"off",
+        "eol-last":"off"
     }
 }
