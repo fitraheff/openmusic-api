@@ -32,6 +32,16 @@ class AlbumsHandler {
             },
         };
     }
+    /*sync getAlbumsByAlbumIdHandler(request, h) {
+        const { albumId } = request.params;
+        const album = await this._service.getAlbumByAlbumId(albumId);
+        return {
+            status: 'success',
+            data: {
+                album: album
+            },
+        };
+    }*/
 
     async putAlbumByIdHandler(request, h) {
         this._validator.validateAlbumPayload(request.payload);

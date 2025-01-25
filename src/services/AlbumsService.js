@@ -24,7 +24,7 @@ class AlbumsService {
         return result.rows[0].id;
     }
 
-    async getAlbumById(id) {
+    /*async getAlbumById(id) {
         const query = {
             text: 'SELECT * FROM albums WHERE id = $1',
             values: [id],
@@ -36,6 +36,54 @@ class AlbumsService {
             throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
         }
         return result.rows[0];
+    }*/
+
+    /*async getAlbumByAlbumId(albumId) {
+        const query = {
+            text: 'SELECT albums.id, albums.name, albums.year, songs.id, songs.title, songs.performer FROM albums LEFT JOIN songs ON albums.id = songs."albumId" WHERE id = $1',
+            values: [albumId],
+        }
+        const result = await this._pool.query(query)
+        // console.log('Result from getAlbumById', result.rows)
+
+        if (!result.rows.length) {
+            throw new NotFoundError(`Album dengan id ${albumId} tidak ditemukan`);
+        }
+        return result.rows[0];
+    }888*/
+
+    async getAlbumById(id) {
+        const albumQuery = {
+            text: `
+                SELECT id, name, year 
+                FROM albums 
+                WHERE id = $1
+            `,
+            values: [id],
+        };
+    
+        const songsQuery = {
+            text: `
+                SELECT id, title, performer 
+                FROM songs 
+                WHERE "albumId" = $1
+            `,
+            values: [id],
+        };
+    
+        const albumResult = await this._pool.query(albumQuery);
+        const songsResult = await this._pool.query(songsQuery);
+    
+        if (!albumResult.rows.length) {
+            throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
+        }
+    
+        const album = {
+            ...albumResult.rows[0],
+            songs: songsResult.rows
+        };
+    
+        return album;
     }
 
     async updateAlbumById(id, { name, year }) {

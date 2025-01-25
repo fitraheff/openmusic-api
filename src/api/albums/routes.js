@@ -9,6 +9,11 @@ const routes = (handler) => [
         path: '/albums/{id}',
         handler: handler.getAlbumsByIdHandler,
     },
+    /*{
+        method: 'GET',
+        path: '/albums/{albumId}',
+        handler: handler.getAlbumsByAlbumIdHandler,
+    },*/
     {
         method: 'PUT',
         path: '/albums/{id}',
