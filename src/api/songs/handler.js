@@ -22,8 +22,12 @@ class SongsHandler {
         return response;
     }
 
-    async getSongsHandler() {
-        const songs = await this._service.getSongs();
+    async getSongsHandler(request, h) {
+        const { title = '', performer = '' } = request.query;
+    
+        // Pastikan Anda memanggil getSongs dengan parameter terpisah
+        const songs = await this._service.getSongs(title, performer);
+    
         return {
             status: 'success',
             data: {
@@ -31,6 +35,7 @@ class SongsHandler {
             },
         };
     }
+    
 
     async getSongByIdHandler(request, h) {
         const { id } = request.params;

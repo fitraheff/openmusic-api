@@ -24,34 +24,6 @@ class AlbumsService {
         return result.rows[0].id;
     }
 
-    /*async getAlbumById(id) {
-        const query = {
-            text: 'SELECT * FROM albums WHERE id = $1',
-            values: [id],
-        }
-        const result = await this._pool.query(query)
-        // console.log('Result from getAlbumById', result.rows)
-
-        if (!result.rows.length) {
-            throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
-        }
-        return result.rows[0];
-    }*/
-
-    /*async getAlbumByAlbumId(albumId) {
-        const query = {
-            text: 'SELECT albums.id, albums.name, albums.year, songs.id, songs.title, songs.performer FROM albums LEFT JOIN songs ON albums.id = songs."albumId" WHERE id = $1',
-            values: [albumId],
-        }
-        const result = await this._pool.query(query)
-        // console.log('Result from getAlbumById', result.rows)
-
-        if (!result.rows.length) {
-            throw new NotFoundError(`Album dengan id ${albumId} tidak ditemukan`);
-        }
-        return result.rows[0];
-    }888*/
-
     async getAlbumById(id) {
         const albumQuery = {
             text: `
