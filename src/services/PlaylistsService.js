@@ -73,14 +73,14 @@ class PlaylistsService {
         }
     }
 
-    async addSongPlaylist(playlisId, songId) {
+    async addSongPlaylist(playlistId, songId) {
         const id = `playlist-song-${nanoid(16)}`;
 
         await this._songsService.getSongById(songId);
 
         const query = {
             text: 'INSERT INTO playlist_songs (id, "playlistId", "songId") VALUES($1, $2, $3) RETURNING id',
-            values: [id, playlisId, songId],
+            values: [id, playlistId, songId],
         };
         // console.log('Playlist ID:', playlistId);
         // console.log('Song ID:', songId);
@@ -118,7 +118,7 @@ class PlaylistsService {
             throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
         }
     }
-//
+    //
     async verifyPlaylistOwner(id, owner) {
         const query = {
             text: 'SELECT * FROM playlists WHERE id = $1',
@@ -136,7 +136,7 @@ class PlaylistsService {
             throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
         }
     }
-//
+    //
     async verifyPlaylistAccess(playlistId, userId) {
         try {
             await this.verifyPlaylistOwner(playlistId, userId);
@@ -150,6 +150,39 @@ class PlaylistsService {
                 throw error;
             }
         }
+    }
+
+    async addPlaylistActivity({playlistId, songId, userId, action}) {
+        const activityId = `activity-${nanoid(16)}`;
+        const query = {
+            text: 'INSERT INTO playlist_activities (id, "playlistId", "songId", "userId", action) VALUES($1, $2, $3, $4, $5) RETURNING id',
+            values: [activityId, playlistId, songId || null, userId, action],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rows[0].id) {
+            throw new InvariantError('Playlist activity gagal ditambahkan');
+        }
+    }
+
+    async getPlaylistActivities(playlistId) {
+        const query = {
+            text: `SELECT users.username, songs.title, playlist_activities.action, playlist_activities.time
+            FROM playlist_activities
+            LEFT JOIN users ON users.id = playlist_activities."userId"
+            LEFT JOIN songs ON playlist_activities."songId" = songs.id
+            WHERE playlist_activities."playlistId" = $1`,
+            values: [playlistId],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rows.length) {
+            throw new NotFoundError('Playlist activity tidak ditemukan');
+        }
+
+        return result.rows;
     }
 };
 

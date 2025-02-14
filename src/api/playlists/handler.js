@@ -57,11 +57,23 @@ class PlaylistHandler {
         await this._service.verifyPlaylistAccess(playlistId, credentialId);
         await this._service.addSongPlaylist(playlistId, songId);
 
-        return h.response({
+
+
+        const response = h.response({
             status: 'success',
             message: 'Song berhasil ditambahkan ke playlist',
-        }).code(201);
+        })
 
+        await this._service.addPlaylistActivity({
+            playlistId,
+            songId,
+            userId: credentialId,
+            action: 'add',
+        });
+        // console.log('Adding activity:', { addPlaylistActivity: { playlistId, songId, userId, action } });
+
+        response.code(201);
+        return response;
     }
 
     async getSongsPlaylistHandler(request) {
@@ -90,16 +102,41 @@ class PlaylistHandler {
         const { songId } = request.payload;
         const { id: credentialId } = request.auth.credentials;
 
-        console.log('Playlist ID:', playlistId);
-        console.log('Song ID:', songId);
-        console.log('Payload:', request.payload);
+        // console.log('Playlist ID:', playlistId);
+        // console.log('Song ID:', songId);
+        // console.log('Payload:', request.payload);
 
         await this._service.verifyPlaylistAccess(playlistId, credentialId);
         await this._service.deleteSongPlaylist(playlistId, songId);
 
+        await this._service.addPlaylistActivity({
+            playlistId, songId, userId: credentialId, action: 'delete'
+        });
+
         return {
             status: 'success',
             message: 'Song berhasil dihapus dari playlist',
+        };
+    }
+
+    async getActivitiesPlaylistHandler(request) {
+        const { id: credentialId } = request.auth.credentials;
+        const { playlistId } = request.params;
+
+        await this._service.verifyPlaylistAccess(playlistId, credentialId);
+        const playlist = await this._service.getPlaylistById(playlistId);
+        const activities = await this._service.getPlaylistActivities(playlistId);
+
+        return {
+            status: 'success',
+            data: {
+                playlist: {
+                    id: playlist.id,
+                    name: playlist.name,
+                    username: playlist.username,
+                    activities,
+                }
+            },
         };
     }
 }

@@ -48,6 +48,14 @@ const routes = (handler) => [
             auth: 'notesapp_jwt',
         },
     },
+    {
+        method: 'GET',
+        path: '/playlists/{playlistId}/activities',
+        handler: handler.getActivitiesPlaylistHandler,
+        options: {
+            auth: 'notesapp_jwt',
+        },
+    }
 ];
 
 module.exports = routes;
