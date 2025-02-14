@@ -1,11 +1,30 @@
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
 
 const albums = require('./api/albums');
 const AlbumsService = require('./services/AlbumsService')
 const AlbumsValidator = require('./validator/albums');
+
 const songs = require('./api/songs');
 const SongsService = require('./services/SongsService')
 const SongsValidator = require('./validator/songs');
+
+const users = require('./api/users');
+const UsersService = require('./services/UserService');
+const UsersValidator = require('./validator/users');
+
+const authentications = require('./api/authentications');
+const AuthenticationsService = require('./services/AuthenticationsService');
+const TokenManager = require('./tokenize/TokenManager');
+const AuthenticationsValidator = require('./validator/authentications');
+
+const playlist = require('./api/playlists');
+const PlaylistsService = require('./services/PlaylistsService');
+const PlaylistsValidator = require('./validator/playlists');
+
+const collaborations = require('./api/collaborations');
+const CollaborationsService = require('./services/CollaborationsService');
+const CollaborationsValidator = require('./validator/collaborations');
 
 const ClientError = require('./exceptions/ClientError');
 
@@ -14,6 +33,10 @@ require('dotenv').config();
 const init = async () => {
     const albumsService = new AlbumsService();
     const songsService = new SongsService();
+    const usersService = new UsersService();
+    const authenticationsService = new AuthenticationsService();
+    const collaborationsService = new CollaborationsService(usersService);
+    const playlistsService = new PlaylistsService(collaborationsService, songsService);
 
     const server = Hapi.server({
         port: process.env.PORT,
@@ -25,23 +48,88 @@ const init = async () => {
         },
     });
 
-    // Register albums plugin
-    await server.register({
-        plugin: albums,
-        options: {
-            service: albumsService,
-            validator: AlbumsValidator,
+    // registrasi plugin eksternal
+    await server.register([
+        {
+            plugin: Jwt,
         },
+    ]);
+
+    // mendefinisikan strategy autentikasi jwt
+    server.auth.strategy('notesapp_jwt', 'jwt', {
+        keys: process.env.ACCESS_TOKEN_KEY,
+        verify: {
+            aud: false,
+            iss: false,
+            sub: false,
+            maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+        },
+        validate: (artifacts) => ({
+            isValid: true,
+            credentials: {
+                id: artifacts.decoded.payload.id,
+            },
+        }),
     });
 
-    // Register songs plugin
-    await server.register({
-        plugin: songs,
-        options: {
-            service: songsService,
-            validator: SongsValidator,
+    await server.register([
+        // Register albums plugin
+        {
+            plugin: albums,
+            options: {
+                service: albumsService,
+                validator: AlbumsValidator,
+            },
         },
-    });
+
+        // Register songs plugin
+        {
+            plugin: songs,
+            options: {
+                service: songsService,
+                validator: SongsValidator,
+            },
+        },
+
+        // Register users plugin
+        {
+            plugin: users,
+            options: {
+                service: usersService,
+                validator: UsersValidator,
+            },
+        },
+
+        // Register authentications plugin
+        {
+            plugin: authentications,
+            options: {
+                authenticationsService,
+                usersService,
+                tokenManager: TokenManager,
+                validator: AuthenticationsValidator,
+            },
+        },
+
+        // Register playlists plugin
+        {
+            plugin: playlist,
+            options: {
+                service: playlistsService,
+                validator: PlaylistsValidator,
+            },
+        },
+
+        // Register collaborations plugin
+        {
+            plugin: collaborations,
+            options: {
+                collaborationsService,
+                playlistsService,
+                validator: CollaborationsValidator,
+            },
+        },
+    ]);
 
     server.ext('onPreResponse', (request, h) => {
         const { response } = request;
