@@ -36,10 +36,8 @@ class PlaylistsService {
                 GROUP BY playlists.id, users.username`,
             values: [owner],
         };
-        // console.log('Owner:', owner);
 
         const result = await this._pool.query(query);
-        // console.log(result.rows);
         return result.rows;
     }
 
@@ -73,22 +71,6 @@ class PlaylistsService {
         }
     }
 
-    /*
-    async deletePlaylistsById(id) {
-        const query = {
-            text: 'DELETE FROM playlists WHERE id = $1 RETURNING id',
-            values: [id],
-        };
-
-        const result = await this._pool.query(query);
-
-        if (!result.rows[0].id) {
-            throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
-        }
-        return result.rows[0].id;
-    }
-    */
-
     async addSongPlaylist(playlistId, songId) {
         const id = `playlist-song-${nanoid(16)}`;
 
@@ -98,8 +80,6 @@ class PlaylistsService {
             text: 'INSERT INTO playlist_songs (id, "playlistId", "songId") VALUES($1, $2, $3) RETURNING id',
             values: [id, playlistId, songId],
         };
-        // console.log('Playlist ID:', playlistId);
-        // console.log('Song ID:', songId);
         const result = await this._pool.query(query);
 
         if (!result.rows[0].id) {
@@ -127,7 +107,6 @@ class PlaylistsService {
             text: 'DELETE FROM playlist_songs WHERE "playlistId" = $1 AND "songId" = $2 RETURNING id',
             values: [playlistId, songId],
         };
-        console.log('Executing query:', query);
 
         const result = await this._pool.query(query);
 
@@ -135,7 +114,7 @@ class PlaylistsService {
             throw new InvariantError('Lagu gagal dihapus. Id tidak ditemukan');
         }
     }
-    //
+
     async verifyPlaylistOwner(id, owner) {
         const query = {
             text: 'SELECT * FROM playlists WHERE id = $1',
@@ -153,7 +132,7 @@ class PlaylistsService {
             throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
         }
     }
-    //
+
     async verifyPlaylistAccess(playlistId, userId) {
         try {
             await this.verifyPlaylistOwner(playlistId, userId);
@@ -169,7 +148,7 @@ class PlaylistsService {
         }
     }
 
-    async addPlaylistActivity({playlistId, songId, userId, action}) {
+    async addPlaylistActivity({ playlistId, songId, userId, action }) {
         const activityId = `activity-${nanoid(16)}`;
         const query = {
             text: 'INSERT INTO playlist_activities (id, "playlistId", "songId", "userId", action) VALUES($1, $2, $3, $4, $5) RETURNING id',
@@ -202,7 +181,6 @@ class PlaylistsService {
 
         return result.rows;
     }
-};
-
+}
 
 module.exports = PlaylistsService;

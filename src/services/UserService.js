@@ -28,7 +28,6 @@ class UsersService {
         return result.rows[0].id;
     }
 
-    // TODO: Verifikasi username, pastikan belum terdaftar.
     async verifyNewUser(username) {
         const query = {
             text: 'SELECT username FROM users WHERE username = $1',
