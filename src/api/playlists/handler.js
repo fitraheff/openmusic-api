@@ -98,13 +98,15 @@ class PlaylistHandler {
     }
 
     async deleteSongsPlaylistHandler(request) {
+        // this._validator.validateDeleteSongPayload(request.payload);
+
         const { playlistId } = request.params;
         const { songId } = request.payload;
         const { id: credentialId } = request.auth.credentials;
 
-        // console.log('Playlist ID:', playlistId);
-        // console.log('Song ID:', songId);
-        // console.log('Payload:', request.payload);
+        console.log('Playlist ID:', playlistId);
+        console.log('Song ID:', songId);
+        console.log('Payload:', request.payload);
 
         await this._service.verifyPlaylistAccess(playlistId, credentialId);
         await this._service.deleteSongPlaylist(playlistId, songId);
@@ -122,22 +124,22 @@ class PlaylistHandler {
     async getActivitiesPlaylistHandler(request) {
         const { id: credentialId } = request.auth.credentials;
         const { playlistId } = request.params;
+        // console.log('Playlist ID params:', playlistId);
 
         await this._service.verifyPlaylistAccess(playlistId, credentialId);
         const playlist = await this._service.getPlaylistById(playlistId);
         const activities = await this._service.getPlaylistActivities(playlistId);
 
+        // console.log('Playlist ID await:', playlist);
         return {
             status: 'success',
             data: {
-                playlist: {
-                    id: playlist.id,
-                    name: playlist.name,
-                    username: playlist.username,
-                    activities,
-                }
+                playlistId: playlist.id,
+                activities, // Gunakan hasil dari getPlaylistActivities
             },
+            
         };
+        console.log(data);
     }
 }
 

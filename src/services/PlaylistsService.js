@@ -73,6 +73,22 @@ class PlaylistsService {
         }
     }
 
+    /*
+    async deletePlaylistsById(id) {
+        const query = {
+            text: 'DELETE FROM playlists WHERE id = $1 RETURNING id',
+            values: [id],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rows[0].id) {
+            throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
+        }
+        return result.rows[0].id;
+    }
+    */
+
     async addSongPlaylist(playlistId, songId) {
         const id = `playlist-song-${nanoid(16)}`;
 
@@ -111,11 +127,12 @@ class PlaylistsService {
             text: 'DELETE FROM playlist_songs WHERE "playlistId" = $1 AND "songId" = $2 RETURNING id',
             values: [playlistId, songId],
         };
+        console.log('Executing query:', query);
 
         const result = await this._pool.query(query);
 
         if (!result.rows.length) {
-            throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
+            throw new InvariantError('Lagu gagal dihapus. Id tidak ditemukan');
         }
     }
     //
@@ -172,7 +189,8 @@ class PlaylistsService {
             FROM playlist_activities
             LEFT JOIN users ON users.id = playlist_activities."userId"
             LEFT JOIN songs ON playlist_activities."songId" = songs.id
-            WHERE playlist_activities."playlistId" = $1`,
+            WHERE playlist_activities."playlistId" = $1
+            ORDER BY playlist_activities.time ASC`,
             values: [playlistId],
         };
 
