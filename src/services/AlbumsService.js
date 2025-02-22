@@ -4,8 +4,9 @@ const InvariantError = require('../exceptions/InvariantError');
 const NotFoundError = require('../exceptions/NotFoundError');
 
 class AlbumsService {
-    constructor() {
+    constructor(storageService) {
         this._pool = new Pool();
+        this._storageService = storageService;
     }
 
     async addAlbum({ name, year }) {
@@ -27,13 +28,13 @@ class AlbumsService {
     async getAlbumById(id) {
         const albumQuery = {
             text: `
-                SELECT id, name, year 
+                SELECT id, name, year, "coverUrl" 
                 FROM albums 
                 WHERE id = $1
             `,
             values: [id],
         };
-    
+
         const songsQuery = {
             text: `
                 SELECT id, title, performer 
@@ -42,19 +43,19 @@ class AlbumsService {
             `,
             values: [id],
         };
-    
+
         const albumResult = await this._pool.query(albumQuery);
         const songsResult = await this._pool.query(songsQuery);
-    
+
         if (!albumResult.rows.length) {
             throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
         }
-    
+
         const album = {
             ...albumResult.rows[0],
             songs: songsResult.rows
         };
-    
+
         return album;
     }
 
@@ -85,6 +86,25 @@ class AlbumsService {
             throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
         }
     }
+
+    async uploadAlbumCover(id, cover) {
+        const filename = await this._storageService.writeFile(cover, cover.hapi);
+
+        const encodedFileName = encodeURIComponent(filename);
+        const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/album/cover/${encodedFileName}`;
+
+        const query = {
+            text: 'UPDATE albums SET "coverUrl" = $1 WHERE id = $2 RETURNING id',
+            values: [coverUrl, id],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rows.length) {
+            throw new NotFoundError(`Album dengan id ${id} tidak ditemukan`);
+        }
+    }
+
 }
 
 module.exports = AlbumsService;

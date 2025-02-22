@@ -35,11 +35,6 @@ exports.up = (pgm) => {
             default: pgm.func('CURRENT_TIMESTAMP'),
         }
     })
-
-    pgm.sql(`
-        ALTER TABLE playlist_activities
-        ALTER COLUMN songId DROP NOT NULL;
-    `);
 };
 
 
