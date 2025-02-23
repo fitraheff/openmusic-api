@@ -1,5 +1,3 @@
-
-
 exports.up = (pgm) => {
     pgm.createTable('songs', {
         id: {

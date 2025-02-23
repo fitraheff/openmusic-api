@@ -1,5 +1,3 @@
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
     // Menambahkan kolom created_at dengan nilai default current_timestamp
     pgm.addColumn('playlists', {

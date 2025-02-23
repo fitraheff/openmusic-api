@@ -34,19 +34,25 @@ const ExportsValidator = require('./validator/exports');
 
 const StorageService = require('./services/storage/StorageService');
 
+const CacheService = require('./services/redis/CacheService');
+
 const ClientError = require('./exceptions/ClientError');
 
 require('dotenv').config();
 
 const init = async () => {
+    const cacheService = new CacheService();
     const storageService = new StorageService(path.resolve(__dirname, 'api/albums/images'));
-    console.log('Directory handler path:', path.resolve(__dirname, 'api/albums/images'));
-    const albumsService = new AlbumsService(storageService);
+    const albumsService = new AlbumsService(storageService, cacheService);
     const songsService = new SongsService();
     const usersService = new UsersService();
     const authenticationsService = new AuthenticationsService();
     const collaborationsService = new CollaborationsService(usersService);
-    const playlistsService = new PlaylistsService(collaborationsService, songsService);
+    const playlistsService = new PlaylistsService(
+        collaborationsService,
+        songsService,
+        cacheService
+    );
 
     const server = Hapi.server({
         port: process.env.PORT,

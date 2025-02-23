@@ -43,9 +43,28 @@ const routes = (handler) => [
                 path: path.resolve(__dirname, 'images'),
             },
         },
-    }
-    
-    
+    },
+    {
+        method: 'POST',
+        path: '/albums/{id}/likes',
+        handler: handler.postLikeAlbumHandler,
+        options: {
+            auth: 'notesapp_jwt',
+        },
+    },
+    {
+        method: 'DELETE',
+        path: '/albums/{id}/likes',
+        handler: handler.deleteLikeAlbumHandler,
+        options: {
+            auth: 'notesapp_jwt',
+        },
+    },
+    {
+        method: 'GET',
+        path: '/albums/{id}/likes',
+        handler: handler.getLikesAlbumHandler,
+    },
 ];
 
 module.exports = routes;

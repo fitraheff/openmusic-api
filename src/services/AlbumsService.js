@@ -4,9 +4,11 @@ const InvariantError = require('../exceptions/InvariantError');
 const NotFoundError = require('../exceptions/NotFoundError');
 
 class AlbumsService {
-    constructor(storageService) {
+    constructor(storageService, cacheService) {
         this._pool = new Pool();
+
         this._storageService = storageService;
+        this._cacheService = cacheService;
     }
 
     async addAlbum({ name, year }) {
@@ -105,6 +107,64 @@ class AlbumsService {
         }
     }
 
+    async addLikesAlbum(albumId, userId) {
+        const id = `likes-${nanoid(16)}`;
+
+        try {
+            const query = {
+                text: 'INSERT INTO user_album_likes (id, "albumId", "userId") VALUES($1, $2, $3) RETURNING id',
+                values: [id, albumId, userId],
+            };
+
+            const result = await this._pool.query(query);
+
+            if (!result.rows[0].id) {
+                throw new InvariantError('Like gagal ditambahkan');
+            }
+
+            await this._cacheService.delete(`likes:${albumId}`);
+
+            return result.rows[0].id;
+        } catch (error) {
+            if (error.code === '23505') {
+                throw new InvariantError('Anda sudah menyukai album ini');
+            }
+            throw error;
+        }
+    }
+
+    async deleteLikesAlbum(albumId, userId) {
+        const query = {
+            text: 'DELETE FROM user_album_likes WHERE "albumId" = $1 AND "userId" = $2 RETURNING id',
+            values: [albumId, userId],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result.rowCount) {
+            throw new NotFoundError('Like gagal dihapus. Id tidak ditemukan');
+        }
+
+        await this._cacheService.delete(`likes:${albumId}`);
+    }
+
+    async getLikesAlbum(id) {
+        try {
+            const likes = await this._cacheService.get(`likes:${id}`);
+            return { likes: JSON.parse(likes), isFromCache: true };
+        } catch (error) {
+            const query = {
+                text: 'SELECT * FROM user_album_likes WHERE "albumId" = $1',
+                values: [id],
+            };
+
+            const result = await this._pool.query(query);
+
+            await this._cacheService.set(`likes:${id}`, JSON.stringify(result.rowCount));
+
+            return { likes: result.rowCount, isFromCache: false };
+        }
+    }
 }
 
 module.exports = AlbumsService;
